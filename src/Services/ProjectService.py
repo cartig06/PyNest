@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
 
 @dataclass
 class Project:
@@ -28,10 +28,10 @@ class ProjectService:
 
         return config
 
-    def open_project(self, root: Path) -> Project:
+    def open_project(self, root_dir: Path) -> Project:
         """ Open a project from the root directory """
 
-        config_file = root / ".pynest" / "project.json"
+        config_file = root_dir / ".pynest" / "project.json"
         if not config_file.exists():
             raise FileNotFoundError(config_file)
 
@@ -90,3 +90,14 @@ class ProjectService:
         self.current_project.name = new_name
         self.save_project()
 
+    def create_project(self, name: str, description: str, root_dir: Path) -> Project:
+        """ Creates and returns a new project, then saves it to the default config location """
+        if root_dir.exists():
+            raise FileExistsError("Given project already exists")
+
+        project_id = uuid4()
+        project = Project(id=project_id, name=name, description=description, root_dir=root_dir)
+
+        self.current_project = project
+        self.save_project()
+        return project

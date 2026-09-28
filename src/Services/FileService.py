@@ -74,3 +74,17 @@ class FileService:
 
         self.active_file.path.unlink()
 
+    def move_file(self, new_path_parent: Path) -> None:
+        """ Moves the active file to a new directory """
+
+        if self.active_file is None:
+            raise ValueError("No active file")
+
+        new_path = new_path_parent / self.active_file.path.name
+
+        if new_path.exists():
+            raise FileExistsError("Given file already exists")
+
+        self.active_file.path.rename(new_path)
+        self.active_file.path = new_path
+
