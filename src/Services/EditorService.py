@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from src.Services.FileService import FileService, File
+from Services.FileService import FileService, File
 from pathlib import Path
 
 @dataclass
@@ -24,6 +24,7 @@ class EditorService:
     def __init__(self, file_service: FileService, state: EditorState):
         self.file_service = file_service
         self.state = state
+        self._clipboard = ""
 
     @property
     def contents(self) -> str:
@@ -35,11 +36,40 @@ class EditorService:
         return self.file_service.active_file.contents
 
     @property
+    def cursor_line(self) -> int:
+        """ Property referencing the active line number """
+
+        return self.contents.count("\n",0, self.state.cursor_position)
+
+    @property
+    def cursor_column(self) -> int:
+        """ Property referencing the active column number """
+
+        position = self.state.cursor_position
+        line_start = self.contents.rfind("\n", 0, position)
+
+        if line_start == -1:
+            return position
+        else:
+            return position - line_start - 1
+
+    @property
+    def cursor_line_column(self) -> tuple[int, int]:
+        """ Property referencing the active line and column number """
+        return self.cursor_line, self.cursor_column
+
+    @property
     def selected_text(self) -> str:
         if self.state.selection_start is None or self.state.selection_end is None:
             return ""
 
         return self.contents[self.state.selection_start : self.state.selection_end]
+
+    @property
+    def clipboard(self):
+        """ Return the contents of the clipboard """
+
+        return self._clipboard
 
     def open(self, path: Path) -> File:
         """ A method allowing the editor to reset and open a file """
@@ -53,6 +83,80 @@ class EditorService:
 
         self.file_service.close_file()
         self.state.reset()
+
+    def move_cursor(self, position: int, is_selecting: bool) -> None:
+        """ Moves the cursor to a given position while also handling selection"""
+
+        # Clamp position value between zero and len(self.contents), making sure the value falls
+        # between the two
+        position = max(0, min(len(self.contents), position))
+
+        if is_selecting:
+            if self.state.selection_start is None:
+                self.state.selection_start = self.state.cursor_position
+
+            self.state.selection_end = position
+
+        else:
+            self.state.selection_start = None
+            self.state.selection_end = None
+
+        self.state.cursor_position = position
+
+    def position_from_line_column(self, line: int, column: int) -> int:
+        """ Returns a position from a given line and column number """
+
+        if not self.contents:
+            return 0
+
+        lines = self.contents.splitlines(keepends=True)
+
+        line_no = max(0, min(len(lines) - 1, line))
+        line_start = sum(len(lines[i]) for i in range(line_no))
+
+        line_length = len(lines[line_no].rstrip("\n"))
+
+        column = max(0, min(line_length, column))
+
+        return line_start + column
+
+    """ Methods to move the cursor via arrow keys"""
+    def move_cursor_up(self, is_selecting: bool) -> None:
+        # Moves the cursor up
+        line, column = self.cursor_line_column
+
+        if line == 0:
+            return
+
+        line -= 1
+
+        position = self.position_from_line_column(line, column)
+        self.move_cursor(position, is_selecting)
+
+
+    def move_cursor_down(self, is_selecting: bool) -> None:
+        # Moves the cursor down
+        line, column = self.cursor_line_column
+
+        if line >= self.contents.count("\n"):
+            return
+
+        line += 1
+
+        position = self.position_from_line_column(line, column)
+        self.move_cursor(position, is_selecting)
+
+    def move_cursor_left(self, is_selecting: bool) -> None:
+        # Moves the cursor left
+
+        position = self.state.cursor_position - 1
+        self.move_cursor(position, is_selecting)
+
+    def move_cursor_right(self, is_selecting: bool) -> None:
+        # Moves the cursor right
+
+        position = self.state.cursor_position + 1
+        self.move_cursor(position, is_selecting)
 
     def insert(self, to_insert: str) -> None:
         """ A method to insert text either into a selected block, or appending at the given position """
@@ -133,3 +237,16 @@ class EditorService:
 
         self.state.selection_start = start
         self.state.selection_end = end
+
+    def copy(self) -> None:
+        """ Copies the selected text to clipboard """
+
+        self._clipboard = self.selected_text
+
+    def paste(self):
+        """ Pastes the contents of the clipboard """
+
+        if not self.clipboard:
+            return
+
+        self.insert(self.clipboard)

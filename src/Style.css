@@ -1,0 +1,30 @@
+EditorWidget {
+    width: 100%;
+    height: 100%;
+}
+
+TextEditorWidget {
+    position: relative;
+}
+
+Horizontal {
+    width: 100%;
+    height: 100%;
+}
+
+LineNumbersWidget {
+    width: 10;
+}
+
+#text {
+    width: 1fr;
+}
+
+#cursor {
+    position: absolute;
+    width: 0;
+    height: 1;
+    background: transparent;
+
+    border-left: solid white;
+}
