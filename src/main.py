@@ -1,5 +1,3 @@
-from tkinter.ttk import Style
-
 from textual.app import App
 from pathlib import Path
 from Widgets.EditorWidget import EditorWidget
@@ -23,7 +21,7 @@ if __name__ == "__main__":
     file_service = FileService()
     editor_service = EditorService(file_service, editor_state)
 
-    editor_service.open(Path()) # PATH FOR TEST FILE HERE
+    editor_service.open(Path("")) # PATH FOR TEST FILE HERE
 
     app = PyNestApp(editor_service)
     app.run()

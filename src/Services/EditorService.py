@@ -249,7 +249,8 @@ class EditorService:
         self.file_service.active_file.contents = contents
         self.state.dirty = True
 
-    def get_indentation(self, line:str) -> str:
+    @staticmethod
+    def get_indentation(line:str) -> str:
         """ Returns the indentation characters of a given line"""
 
         indentation = ""

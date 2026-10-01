@@ -1,9 +1,9 @@
 from Services.EditorService import EditorService
 from Widgets.CursorWidget import CursorWidget
 from Widgets.LineNumbersWidget import LineNumbersWidget
+from Widgets.StatusBar import StatusBar
 from textual.widget import Widget
 from textual.widgets import Static
-from textual.dom import NoMatches
 
 class TextEditorWidget(Widget):
     """ Text editor Textual widget for displaying contents of the file """       # MAY NEED UPDATE LATER
@@ -17,10 +17,7 @@ class TextEditorWidget(Widget):
         ("right", "cursor_right", "Moves cursor right"),
 
         # Selection
-        ("shift+up", "select_up", "Moves cursor up while selecting"),
-        ("shift+down", "select_down", "Moves cursor down while selecting"),
-        ("shift+left", "select_left", "Moves cursor left while selecting"),
-        ("shift+right", "select_right", "Moves cursor right while selecting"),
+        ("f2", "toggle_select", "Toggles select mode for movement"),
 
         # File Management
         ("ctrl+s", "save", "Save the active file"),
@@ -31,10 +28,19 @@ class TextEditorWidget(Widget):
 
     ]
 
+    AUTO_CLOSE = {
+        "(": ")",
+        "[": "]",
+        "{": "}",
+        '"': '"',
+        "'": "'",
+    }
+
     def __init__(self, editor_service: EditorService):
         super().__init__()
         self.editor_service = editor_service
         self.can_focus = True
+        self.select_mode = False
 
     def on_mount(self) -> None:
         self.refresh_editor()
@@ -54,10 +60,19 @@ class TextEditorWidget(Widget):
 
         contents = self.editor_service.contents.expandtabs(4)
         line_count = self.app.query_one("#lines", LineNumbersWidget)
+        status = self.app.query_one("#status", StatusBar)
         text = self.query_one("#text", Static)
 
         text.update(contents)
         line_count.refresh_line_count()
+
+        status.update_info(
+            self.select_mode,
+            self.editor_service.file_service.active_file.name,
+            self.editor_service.cursor_line,
+            self.editor_service.visual_cursor_column(),
+            self.editor_service.state.dirty
+        )
 
 
         self.update_cursor()
@@ -65,50 +80,32 @@ class TextEditorWidget(Widget):
     def action_cursor_right(self) -> None:
         """ Moves cursor right in editor """
 
-        self.editor_service.move_cursor_right(False)
-        self.update_cursor()
+        self.editor_service.move_cursor_right(self.select_mode)
+        self.refresh_editor()
 
     def action_cursor_left(self) -> None:
         """ Moves cursor left in editor """
 
-        self.editor_service.move_cursor_left(False)
-        self.update_cursor()
+        self.editor_service.move_cursor_left(self.select_mode)
+        self.refresh_editor()
 
     def action_cursor_up(self) -> None:
         """ Moves cursor up in editor """
 
-        self.editor_service.move_cursor_up(False)
-        self.update_cursor()
+        self.editor_service.move_cursor_up(self.select_mode)
+        self.refresh_editor()
 
     def action_cursor_down(self) -> None:
         """ Moves cursor down in editor """
 
-        self.editor_service.move_cursor_down(False)
-        self.update_cursor()
+        self.editor_service.move_cursor_down(self.select_mode)
+        self.refresh_editor()
 
-    def action_select_up(self) -> None:
-        """ Moves cursor up in editor while selecting """
+    def action_toggle_select(self) -> None:
+        """ Toggles select mode """
 
-        self.editor_service.move_cursor_up(True)
-        self.update_cursor()
-
-    def action_select_down(self) -> None:
-        """ Moves cursor down in editor while selecting """
-
-        self.editor_service.move_cursor_down(True)
-        self.update_cursor()
-
-    def action_select_left(self) -> None:
-        """ Moves cursor left in editor while selecting """
-
-        self.editor_service.move_cursor_left(True)
-        self.update_cursor()
-
-    def action_select_right(self) -> None:
-        """ Moves cursor right in editor while selecting """
-
-        self.editor_service.move_cursor_right(True)
-        self.update_cursor()
+        self.select_mode = not self.select_mode
+        self.refresh_editor()
 
     def action_copy(self) -> None:
         """ Copies selected text to clipboard """
@@ -119,12 +116,14 @@ class TextEditorWidget(Widget):
         """ Pastes text from clipboard """
 
         self.editor_service.paste()
+        self.refresh_editor()
 
     def action_save(self) -> None:
         """ Saves the current file """
 
         self.notify(f"File: {self.editor_service.file_service.active_file.name} has been saved.")
         self.editor_service.save()
+        self.refresh_editor()
 
     def on_key(self, event):
 
@@ -134,24 +133,37 @@ class TextEditorWidget(Widget):
             self.refresh_editor()
             event.prevent_default()
 
+        # Forward delete
         elif event.key == "delete":
             self.editor_service.delete()
             self.refresh_editor()
             event.prevent_default()
 
+        # New line
         elif event.key == "enter":
             self.editor_service.indent()
             self.refresh_editor()
             event.prevent_default()
 
+        # Tab
         elif event.key == "tab":
             self.editor_service.insert("\t")
             self.refresh_editor()
             event.prevent_default()
 
+
         # Insertion
         elif event.character and event.character.isprintable():
-            self.editor_service.insert(event.character)
+            # Auto-Close characters
+            if event.character in self.AUTO_CLOSE:
+                self.editor_service.insert(event.character)
+                self.editor_service.insert(self.AUTO_CLOSE[event.character])
+                self.editor_service.move_cursor_left(False)
+
+            # Default text insertion
+            else:
+                self.editor_service.insert(event.character)
+
             self.refresh_editor()
             event.prevent_default()
 

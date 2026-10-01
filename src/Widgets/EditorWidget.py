@@ -1,9 +1,9 @@
 from textual.widget import Widget
-from textual.widgets import Static
 from textual.containers import Horizontal
 from Services.EditorService import EditorService
 from Widgets.LineNumbersWidget import LineNumbersWidget
 from Widgets.TextEditorWidget import TextEditorWidget
+from Widgets.StatusBar import StatusBar
 
 
 class EditorWidget(Widget):
@@ -18,3 +18,4 @@ class EditorWidget(Widget):
             LineNumbersWidget(editor_service=self.editor_service),
             TextEditorWidget(editor_service=self.editor_service)
         )
+        yield StatusBar(id="status")

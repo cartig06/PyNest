@@ -1,5 +1,4 @@
 from textual.widget import Widget
-from Services.EditorService import EditorService
 
 class CursorWidget(Widget):
     """ Class housing the (visible) cursor widget"""
