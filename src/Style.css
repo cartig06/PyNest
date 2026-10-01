@@ -12,7 +12,7 @@ Horizontal {
     height: 100%;
 }
 
-LineNumbersWidget {
+#lines {
     width: 10;
 }
 
@@ -22,9 +22,8 @@ LineNumbersWidget {
 
 #cursor {
     position: absolute;
-    width: 0;
+    width: 1;
     height: 1;
-    background: transparent;
-
-    border-left: solid white;
+    background: white;
+    opacity: 75%;
 }

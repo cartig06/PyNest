@@ -60,10 +60,15 @@ class EditorService:
 
     @property
     def selected_text(self) -> str:
-        if self.state.selection_start is None or self.state.selection_end is None:
+        """ Property referencing the selected text """
+        
+        selection = self.selection_range()
+        if selection is None:
             return ""
 
-        return self.contents[self.state.selection_start : self.state.selection_end]
+        start, end = selection
+
+        return self.contents[start : end]
 
     @property
     def clipboard(self):
@@ -103,6 +108,14 @@ class EditorService:
 
         self.state.cursor_position = position
 
+    def get_current_line(self):
+        """ Returns the contents of the current line"""
+
+        line = self.cursor_line
+        lines = self.contents.splitlines(keepends=True)
+
+        return lines[line] if line < len(lines) else ""
+
     def position_from_line_column(self, line: int, column: int) -> int:
         """ Returns a position from a given line and column number """
 
@@ -119,6 +132,30 @@ class EditorService:
         column = max(0, min(line_length, column))
 
         return line_start + column
+
+    def visual_cursor_column(self) -> int:
+        """ Returns the current visual cursor column number accounting for tabs/escape sequences """
+
+        line, column = self.cursor_line_column
+
+        lines = self.contents.splitlines(keepends=True)
+        if line >= len(lines):
+            return column
+
+        line_content = lines[line]
+        return len(line_content[:column].expandtabs(4))
+
+
+    def selection_range(self) -> tuple[int, int] | None:
+        """ Normalizes a selection range."""
+
+        if self.state.selection_start is None or self.state.selection_end is None:
+            return None
+
+        start = min(self.state.selection_start, self.state.selection_end)
+        end = max(self.state.selection_start, self.state.selection_end)
+
+        return start, end
 
     """ Methods to move the cursor via arrow keys"""
     def move_cursor_up(self, is_selecting: bool) -> None:
@@ -162,13 +199,14 @@ class EditorService:
         """ A method to insert text either into a selected block, or appending at the given position """
 
         contents = self.contents
-        selection_start = self.state.selection_start
-        selection_end = self.state.selection_end
+        selection = self.selection_range()
 
-        if selection_start is not None and selection_end is not None:
-            contents = contents[:selection_start] + to_insert + contents[selection_end:]
+        if selection is not None:
+            start, end = selection
 
-            self.state.cursor_position = selection_start + len(to_insert)
+            contents = contents[:start] + to_insert + contents[end:]
+
+            self.state.cursor_position = start + len(to_insert)
             self.state.selection_start = None
             self.state.selection_end = None
 
@@ -180,16 +218,49 @@ class EditorService:
         self.file_service.active_file.contents = contents
         self.state.dirty = True
 
+    def get_indentation(self, line:str) -> str:
+        """ Returns the indentation characters of a given line"""
+
+        indentation = ""
+
+        for char in line:
+            if char in ("\t", " "):
+                indentation += char
+            else:
+                break
+
+        return indentation
+
+    def indent(self):
+        """ A method to indent text """
+
+        line, column = self.cursor_line_column
+        current_line = self.get_current_line()
+        indentation = self.get_indentation(current_line)
+
+        if self.should_add_indent(current_line[:column].rstrip()):
+            indentation += "\t"
+
+        self.insert("\n" + indentation)
+
+    def should_add_indent(self, line:str) -> bool:
+        """ Checks if editor add more indentation on newline"""
+
+        stripped = line.strip()
+        return stripped.endswith(":")
+
+
     def delete(self):
         """ A method to delete either a block of text or removing one character at the cursor"""
 
         contents = self.contents
-        selection_start = self.state.selection_start
-        selection_end = self.state.selection_end
+        selection = self.selection_range()
 
-        if selection_start is not None and selection_end is not None:
-            contents = contents[:selection_start] + contents[selection_end:]
-            self.state.cursor_position = selection_start
+        if selection is not None:
+            start, end = selection
+
+            contents = contents[:start] + contents[end:]
+            self.state.cursor_position = start
             self.state.selection_start = None
             self.state.selection_end = None
 
@@ -232,11 +303,8 @@ class EditorService:
         if self.file_service.active_file is None:
             raise RuntimeError("No active file")
 
-        start = min(selection_start, selection_end)
-        end = max(selection_start, selection_end)
-
-        self.state.selection_start = start
-        self.state.selection_end = end
+        self.state.selection_start = selection_start
+        self.state.selection_end = selection_end
 
     def copy(self) -> None:
         """ Copies the selected text to clipboard """

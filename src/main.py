@@ -23,7 +23,7 @@ if __name__ == "__main__":
     file_service = FileService()
     editor_service = EditorService(file_service, editor_state)
 
-    editor_service.open(Path(""))
+    editor_service.open() # PATH FOR TEST FILE HERE
 
     app = PyNestApp(editor_service)
     app.run()
