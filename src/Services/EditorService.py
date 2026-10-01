@@ -145,7 +145,7 @@ class EditorService:
         line_content = lines[line]
         return len(line_content[:column].expandtabs(4))
 
-    def visual_position_from_line_column(self, line: int, visual_column: int) -> int:
+    def position_from_line_visual_column(self, line: int, visual_column: int) -> int:
         """ Returns a visual cursor position from a given row and visual column number, accounting for tabs """
 
         tab_size = 4   # How many spaces for tab
@@ -197,7 +197,7 @@ class EditorService:
 
         line -= 1
 
-        position = self.visual_position_from_line_column(line, column)
+        position = self.position_from_line_visual_column(line, column)
         self.move_cursor(position, is_selecting)
 
 
@@ -211,7 +211,7 @@ class EditorService:
 
         line += 1
 
-        position = self.visual_position_from_line_column(line, column)
+        position = self.position_from_line_visual_column(line, column)
         self.move_cursor(position, is_selecting)
 
     def move_cursor_left(self, is_selecting: bool) -> None:
