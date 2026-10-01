@@ -145,6 +145,34 @@ class EditorService:
         line_content = lines[line]
         return len(line_content[:column].expandtabs(4))
 
+    def visual_position_from_line_column(self, line: int, visual_column: int) -> int:
+        """ Returns a visual cursor position from a given row and visual column number, accounting for tabs """
+
+        tab_size = 4   # How many spaces for tab
+        lines = self.contents.splitlines(keepends=True)
+
+        line = max(0, min(len(lines) - 1, line))
+        content = lines[line].rstrip("\n")
+
+        visual_position = 0
+
+        for idx, char in enumerate(content):
+            if char == "\t":
+                tab_align = (visual_position // tab_size + 1) * tab_size
+
+                if tab_align > visual_column:
+                    return self.position_from_line_column(line, idx)
+
+                visual_position = tab_align
+
+            else:
+                if visual_position >= visual_column:
+                    return self.position_from_line_column(line, idx)
+
+                visual_position += 1
+
+        return self.position_from_line_column(line, len(content))
+
 
     def selection_range(self) -> tuple[int, int] | None:
         """ Normalizes a selection range."""
@@ -160,27 +188,30 @@ class EditorService:
     """ Methods to move the cursor via arrow keys"""
     def move_cursor_up(self, is_selecting: bool) -> None:
         # Moves the cursor up
-        line, column = self.cursor_line_column
+        line = self.cursor_line
+
+        column = self.visual_cursor_column()
 
         if line == 0:
             return
 
         line -= 1
 
-        position = self.position_from_line_column(line, column)
+        position = self.visual_position_from_line_column(line, column)
         self.move_cursor(position, is_selecting)
 
 
     def move_cursor_down(self, is_selecting: bool) -> None:
         # Moves the cursor down
-        line, column = self.cursor_line_column
+        line = self.cursor_line
+        column = self.visual_cursor_column()
 
         if line >= self.contents.count("\n"):
             return
 
         line += 1
 
-        position = self.position_from_line_column(line, column)
+        position = self.visual_position_from_line_column(line, column)
         self.move_cursor(position, is_selecting)
 
     def move_cursor_left(self, is_selecting: bool) -> None:
@@ -243,7 +274,8 @@ class EditorService:
 
         self.insert("\n" + indentation)
 
-    def should_add_indent(self, line:str) -> bool:
+    @staticmethod
+    def should_add_indent(line:str) -> bool:
         """ Checks if editor add more indentation on newline"""
 
         stripped = line.strip()
