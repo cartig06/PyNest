@@ -4,9 +4,19 @@ from Widgets.LineNumbersWidget import LineNumbersWidget
 from Widgets.StatusBar import StatusBar
 from textual.widget import Widget
 from textual.widgets import Static
+from textual.message import Message
+from rich.text import Text
 
 class TextEditorWidget(Widget):
     """ Text editor Textual widget for displaying contents of the file """       # MAY NEED UPDATE LATER
+
+    # CursorMoved message to better work with other classes
+    class CursorMoved(Message):
+        pass
+
+    # A message to toggle help visibility
+    class HelpVisibilityChanged(Message):
+        pass
 
     # Bindings for textual
     BINDINGS = [
@@ -15,6 +25,9 @@ class TextEditorWidget(Widget):
         ("down", "cursor_down", "Moves cursor down"),
         ("left", "cursor_left", "Moves cursor left"),
         ("right", "cursor_right", "Moves cursor right"),
+
+        #Help
+        ("f1", "toggle_help", "Toggles help menu"),
 
         # Selection
         ("f2", "toggle_select", "Toggles select mode for movement"),
@@ -42,13 +55,17 @@ class TextEditorWidget(Widget):
         self.can_focus = True
         self.select_mode = False
 
+    @property
+    def cursor_line(self) -> int:
+        return self.editor_service.cursor_line
+
     def on_mount(self) -> None:
         self.refresh_editor()
 
     def update_cursor(self):
         """ Updates cursor widget position """
 
-        line, _ = self.editor_service.cursor_line_column
+        line = self.editor_service.cursor_line
         column = self.editor_service.visual_cursor_column()
 
         cursor = self.query_one("#cursor", CursorWidget)
@@ -61,10 +78,24 @@ class TextEditorWidget(Widget):
         contents = self.editor_service.contents.expandtabs(4)
         line_count = self.app.query_one("#lines", LineNumbersWidget)
         status = self.app.query_one("#status", StatusBar)
+
+        start = self.editor_service.state.selection_start
+        end = self.editor_service.state.selection_end
+
+        rendered_text = Text(contents)
+
+        if start is not None and end is not None:
+            selection_start = self.editor_service.visual_position_from_logical(min(start, end))
+            selection_end = self.editor_service.visual_position_from_logical(max(start, end))
+            rendered_text.stylize("on #3a3d41", selection_start, selection_end)
+
         text = self.query_one("#text", Static)
 
-        text.update(contents)
+
+        text.update(rendered_text)
         line_count.refresh_line_count()
+
+        self.post_message(self.CursorMoved())
 
         status.update_info(
             self.select_mode,
@@ -76,6 +107,16 @@ class TextEditorWidget(Widget):
 
 
         self.update_cursor()
+
+    def action_toggle_help(self):
+        """ Toggles help menu """
+        self.post_message(self.HelpVisibilityChanged())
+
+    def stop_selecting(self) -> None:
+        """ Moves back into insert mode after performing selection operations """
+        self.select_mode = False
+        self.editor_service.state.selection_start = None
+        self.editor_service.state.selection_end = None
 
     def action_cursor_right(self) -> None:
         """ Moves cursor right in editor """
@@ -116,6 +157,7 @@ class TextEditorWidget(Widget):
         """ Pastes text from clipboard """
 
         self.editor_service.paste()
+        self.stop_selecting()
         self.refresh_editor()
 
     def action_save(self) -> None:
@@ -126,28 +168,31 @@ class TextEditorWidget(Widget):
         self.refresh_editor()
 
     def on_key(self, event):
-
         # Backspace
         if event.key == "backspace":
             self.editor_service.backspace()
+            self.stop_selecting()
             self.refresh_editor()
             event.prevent_default()
 
         # Forward delete
         elif event.key == "delete":
             self.editor_service.delete()
+            self.stop_selecting()
             self.refresh_editor()
             event.prevent_default()
 
         # New line
         elif event.key == "enter":
             self.editor_service.indent()
+            self.stop_selecting()
             self.refresh_editor()
             event.prevent_default()
 
         # Tab
         elif event.key == "tab":
             self.editor_service.insert("\t")
+            self.stop_selecting()
             self.refresh_editor()
             event.prevent_default()
 
@@ -164,8 +209,10 @@ class TextEditorWidget(Widget):
             else:
                 self.editor_service.insert(event.character)
 
+            self.stop_selecting()
             self.refresh_editor()
             event.prevent_default()
+
 
     def compose(self):
         contents = self.editor_service.contents.expandtabs(4)

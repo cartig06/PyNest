@@ -173,6 +173,17 @@ class EditorService:
 
         return self.position_from_line_column(line, len(content))
 
+    def visual_position_from_logical(self, position: int) -> int:
+        """ Returns a visual cursor position from a given logical position"""
+        line = self.contents.count("\n", 0, position)
+        line_start = self.contents.rfind("\n", 0, position) + 1
+
+        visual_column = len(self.contents[line_start:position].expandtabs(4))
+
+        lines = self.contents.splitlines(keepends=True)
+
+        return sum(len(line_text.expandtabs(4)) for line_text in lines[:line]) + visual_column
+
 
     def selection_range(self) -> tuple[int, int] | None:
         """ Normalizes a selection range."""

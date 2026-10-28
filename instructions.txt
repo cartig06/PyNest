@@ -1,0 +1,5 @@
+Step 1: Create a python file to edit
+Step 2: Enter the path to the file in main.py at placeholder in /Path/to/file format
+(Sincerest apologies for the complicated-ness here. Have yet to implement file selection and tabs at the moment)
+Step 3: Run main.py from virtual environment (source venv/bin/activate on mac. not sure on windows)
+Step 4: Enjoy PyNest!!
