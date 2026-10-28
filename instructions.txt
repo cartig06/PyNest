@@ -3,3 +3,26 @@ Step 2: Enter the path to the file in main.py at placeholder in /Path/to/file fo
 (Sincerest apologies for the complicated-ness here. Have yet to implement file selection and tabs at the moment)
 Step 3: Run main.py from virtual environment (source venv/bin/activate on mac. not sure on windows)
 Step 4: Enjoy PyNest!!
+
+KEYBIND MAP PER TextEditorWidget.py
+ BINDINGS = [
+        # Movement
+        ("up", "cursor_up", "Moves cursor up"),
+        ("down", "cursor_down", "Moves cursor down"),
+        ("left", "cursor_left", "Moves cursor left"),
+        ("right", "cursor_right", "Moves cursor right"),
+
+        #Help
+        ("f1", "toggle_help", "Toggles help menu"),        # NOT IMPLEMENTED FULLY
+
+        # Selection
+        ("f2", "toggle_select", "Toggles select mode for movement"),
+
+        # File Management
+        ("ctrl+s", "save", "Save the active file"),
+
+        # Clipboard
+        ("ctrl+shift+c", "copy", "Copy the selected text to clipboard"), #FIGHTING TERMINAL FOR KEYBINDS
+        ("ctrl+shift+v", "paste", "Paste text from clipboard"),          #SAME AS ABOVE. TERMINAL IS EATING BINDS
+
+    ]

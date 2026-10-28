@@ -45,20 +45,32 @@ everything should be completed besides git integration and implementation of the
 
 ## Milestone 2
 
-Update this section to describe your project for milestone 2 and complete the following sections. If your project is
-using assets, be sure to keep the citations, sources, and resources section updated.
+Milestone 2 has not seen any major design-altering changes since milestone 1, however many features have been implented.
+As there were many bugs in the milestone 1 release, I had a lot of fixes and patches to do, however the application seems to
+run very well at this time.
+
 
 ### Current Progress
 
-Update this section to describe the current progress of your project.
+As of milestone 2, PyNest's editor features have grown significantly. For instance, auto-closing characters, scrolling, 
+selection highlighting, and many bug fixes have been fully implemented. A togglable help menu is also partially implemented,
+however I ran out of time while writing it. Once the editor portion is fully implemented, due to the modular design of the
+application, multiple tabs and a file explorer will be relatively straightforward. The application is coming along nicely
+and I am excited to continue working on it.
 
 ### Challenges
 
-Update this section to describe the challenges for your project at this stage.
+The biggest challenge I faced while working on this milestone stemmed from selection highlighting. More specifically,
+the visual alignment of the highlights to the actual cursor position due to tabs. I am still fighting keybinds, however hope
+to figure out another solution by the final release. If i cannot, I will have to use unconventional shortcuts, which the user
+could still adapt to with use of the application. For the time being, to view keybinds and what key does what, please view instructions.txt
 
 ### Future Directions
 
-What are your plans for the final submission?
+The final submission will effectively be buttoning up the keybinds, implementing a tab system for multiple editors, a project explorer,
+git integration, finishing the help menu, and adding a terminal/stdout widget as well. Essentially, the final update will be 
+directed toward turning this from a text editor into a full ide. With my recent independent research in mind, I am considering integrating
+a small LLM for tab completion.
 
 
 
@@ -76,9 +88,8 @@ application, you might want to indicate how to navigate the application and inte
 
 ### Installation Instructions
 
-Write instructions here for running your program and any files required to do so as appropriate for your programming
-language**. For Python projects, this typically means having a `requirements.txt` file that you create using
-`pip freeze > requirements.txt`.
+Step 1: Run *pip install -r requirements.txt* in your terminal  
+Step 2: View *instructions.txt* for further step instructions to get this prototype up and running on your machine.
 
 ### Citation, Sources, and References
 
