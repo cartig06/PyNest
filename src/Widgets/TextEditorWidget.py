@@ -36,8 +36,8 @@ class TextEditorWidget(Widget):
         ("ctrl+s", "save", "Save the active file"),
 
         # Clipboard
-        ("ctrl+shift+c", "copy", "Copy the selected text to clipboard"),
-        ("ctrl+shift+v", "paste", "Paste text from clipboard"),
+        ("f3", "copy", "Copy the selected text to clipboard"),
+        ("f4", "paste", "Paste text from clipboard"),
 
     ]
 
@@ -155,6 +155,8 @@ class TextEditorWidget(Widget):
 
     def action_paste(self) -> None:
         """ Pastes text from clipboard """
+        if self.editor_service.clipboard is None:
+            return
 
         self.editor_service.paste()
         self.stop_selecting()

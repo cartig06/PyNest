@@ -1,3 +1,4 @@
+from textual import on
 from textual.message import Message
 from textual.widget import Widget
 from textual.containers import Horizontal, ScrollableContainer
@@ -17,17 +18,25 @@ class EditorWidget(Widget):
 
     def on_mount(self) -> None:
         self.text_editor = self.query_one(TextEditorWidget)
+        self.help_menu = self.query_one(HelpWidget)
         self.editor_scroll = self.query_one("#editor_scroll", ScrollableContainer)
         self.text_editor.focus()
 
-    def on_help_visibility_changed(self, message: TextEditorWidget.HelpVisibilityChanged) -> None:
-        help_widget = self.query_one(HelpWidget)
-        help_widget.toggle_visibility()
+    @on(TextEditorWidget.HelpVisibilityChanged)
+    def on_text_editor_help_visibility_changed(
+            self,
+            message: TextEditorWidget.HelpVisibilityChanged
+    ) -> None:
+        """ Message handler for help menu visibility """
+        self.help_menu.toggle_visibility()
 
+    @on(TextEditorWidget.CursorMoved)
     def on_text_editor_cursor_moved(self, message: TextEditorWidget.CursorMoved) -> None:
+        """ Message handler for auto scrolling functionality """
         self.auto_scroll()
 
     def auto_scroll(self) -> None:
+        """ Automatically scrolls the cursor when needed upon cursor movement"""
         cursor_line = self.text_editor.cursor_line
 
         top = self.editor_scroll.scroll_y
@@ -47,4 +56,5 @@ class EditorWidget(Widget):
             ), id="editor_scroll"
         )
 
+        yield HelpWidget()
         yield StatusBar(id="status")
