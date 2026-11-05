@@ -1,14 +1,5 @@
-from dataclasses import dataclass
 from pathlib import Path
-
-@dataclass
-class File:
-    """ A data class representing a file """
-
-    name: str
-    path: Path
-    contents: str
-
+from Models.File import File
 
 class FileService:
     """ A class handling logic for interacting with files """

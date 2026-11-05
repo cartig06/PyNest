@@ -1,5 +1,4 @@
 from textual import on
-from textual.message import Message
 from textual.widget import Widget
 from textual.containers import Horizontal, ScrollableContainer
 from Services.EditorService import EditorService
@@ -21,6 +20,9 @@ class EditorWidget(Widget):
         self.help_menu = self.query_one(HelpWidget)
         self.editor_scroll = self.query_one("#editor_scroll", ScrollableContainer)
         self.text_editor.focus()
+
+    def on_click(self) -> None:
+        self.query_one(TextEditorWidget).focus()
 
     @on(TextEditorWidget.HelpVisibilityChanged)
     def on_text_editor_help_visibility_changed(

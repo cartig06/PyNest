@@ -1,29 +1,14 @@
-from dataclasses import dataclass
 from Services.FileService import FileService, File
 from pathlib import Path
-
-@dataclass
-class EditorState:
-    """ A data class containing information about the state of the editor """
-
-    cursor_position: int = 0
-    selection_start: int | None = None
-    selection_end: int | None = None
-    dirty: bool = False
-
-    def reset(self) -> None:
-        """ A method used to reset the editor's state """
-        self.cursor_position = 0
-        self.selection_start = None
-        self.selection_end = None
-        self.dirty = False
+from Models.Document import Document
 
 class EditorService:
     """ A service class handling logic for the editor frontend """
 
-    def __init__(self, file_service: FileService, state: EditorState):
+    def __init__(self, file_service: FileService, document: Document):
         self.file_service = file_service
-        self.state = state
+        self.document = document
+        self.state = document.state
         self._clipboard = ""
 
     @property
@@ -352,8 +337,8 @@ class EditorService:
 
     def copy(self) -> None:
         """ Copies the selected text to clipboard """
-
-        self._clipboard = self.selected_text
+        if self.selected_text:
+            self._clipboard = self.selected_text
 
     def paste(self):
         """ Pastes the contents of the clipboard """

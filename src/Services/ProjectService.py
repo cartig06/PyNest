@@ -1,16 +1,7 @@
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from uuid import UUID, uuid4
-
-@dataclass
-class Project:
-    """ A data class representing a project """
-
-    id: UUID
-    name: str
-    description: str
-    root_dir: Path
+from Models.Project import Project
 
 class ProjectService:
     """ A service class for managing projects """
