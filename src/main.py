@@ -1,7 +1,10 @@
 from textual.app import App
 from pathlib import Path
+
+from Models.Document import Document
+from Models.EditorState import EditorState
 from Widgets.EditorWidget import EditorWidget
-from Services.EditorService import EditorService, EditorState
+from Services.EditorService import EditorService
 from Services.FileService import FileService
 
 
@@ -17,11 +20,10 @@ class PyNestApp(App):
         yield EditorWidget(self.editor_service)
 
 if __name__ == "__main__":
-    editor_state = EditorState()
     file_service = FileService()
-    editor_service = EditorService(file_service, editor_state)
-
-    editor_service.open(Path("")) # PATH FOR TEST FILE HERE
+    file = file_service.open_file(Path("")) # TEST PATH HERE
+    document = Document(file)
+    editor_service = EditorService(file_service, document)
 
     app = PyNestApp(editor_service)
     app.run()

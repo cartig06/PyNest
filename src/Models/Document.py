@@ -1,8 +1,8 @@
-from Services.FileService import FileService
 from Models.EditorState import EditorState
+from Models.File import File
 
 class Document:
-    def __init__(self, file_service: FileService):
-        self.file_service = file_service
+    def __init__(self, file: File):
+        self.file = file
         self.state = EditorState()
 

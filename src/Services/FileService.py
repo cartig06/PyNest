@@ -4,11 +4,9 @@ from Models.File import File
 class FileService:
     """ A class handling logic for interacting with files """
 
-    def __init__(self):
-        self.active_file: File | None = None
-
-    def open_file(self, path: Path) -> File:
-        """ Sets the active file """
+    @staticmethod
+    def open_file(path: Path) -> File:
+        """ Loads a file from a given path """
 
         if not path.exists():
             raise FileNotFoundError("Given file does not exist")
@@ -19,63 +17,54 @@ class FileService:
         file_contents = path.read_text(encoding="utf-8")
         file = File(name=path.name, path=path, contents=file_contents)
 
-        self.active_file = file
-
         return file
 
-    def close_file(self) -> None:
-        """ Closes the active file """
+    @staticmethod
+    def save_file(active_file: File) -> None:
+        """ Saves the contents of a given file to disk """
 
-        self.active_file = None
+        if not active_file.path.exists():
+            active_file.path.parent.mkdir(parents=True, exist_ok=True)
+            active_file.path.touch()
 
-    def save_file(self) -> None:
-        """ Saves the contents of the active file """
+        active_file.path.write_text(active_file.contents, encoding="utf-8")
 
-        if self.active_file is None:
-            raise ValueError("No active file")
+    @staticmethod
+    def rename_file(active_file: File, new_name: str) -> None:
+        """ Renames a given file to a given name """
 
-        if not self.active_file.path.exists():
-            self.active_file.path.parent.mkdir(parents=True, exist_ok=True)
-            self.active_file.path.touch()
-
-        self.active_file.path.write_text(self.active_file.contents, encoding="utf-8")
-
-    def rename_file(self, new_name: str) -> None:
-        """ Renames the active file """
-
-        if self.active_file is None:
-            raise ValueError("No active file")
-
-        old_path = self.active_file.path
+        old_path = active_file.path
         new_path = old_path.parent / new_name
 
-        self.active_file.path.rename(new_path)
-
-        self.active_file.name = new_name
-        self.active_file.path = new_path
-
-    def delete_file(self) -> None:
-        """ Deletes the active file """
-
-        if self.active_file is None:
-            raise ValueError("No active file")
-
-        if not self.active_file.path.exists():
-            raise FileNotFoundError("Given file does not exist")
-
-        self.active_file.path.unlink()
-
-    def move_file(self, new_path_parent: Path) -> None:
-        """ Moves the active file to a new directory """
-
-        if self.active_file is None:
-            raise ValueError("No active file")
-
-        new_path = new_path_parent / self.active_file.path.name
+        if new_path == old_path:
+            return
 
         if new_path.exists():
             raise FileExistsError("Given file already exists")
 
-        self.active_file.path.rename(new_path)
-        self.active_file.path = new_path
+        active_file.path.rename(new_path)
+
+        active_file.name = new_name
+        active_file.path = new_path
+
+    @staticmethod
+    def delete_file(active_file: File) -> None:
+        """ Deletes a given file """
+
+        if not active_file.path.exists():
+            raise FileNotFoundError("Given file does not exist")
+
+        active_file.path.unlink()
+
+    @staticmethod
+    def move_file(active_file: File, new_path_parent: Path) -> None:
+        """ Moves a given file to a new directory """
+
+        new_path = new_path_parent / active_file.path.name
+
+        if new_path.exists():
+            raise FileExistsError("Given file already exists")
+
+        active_file.path.rename(new_path)
+        active_file.path = new_path
 

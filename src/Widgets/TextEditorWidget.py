@@ -99,7 +99,7 @@ class TextEditorWidget(Widget):
 
         status.update_info(
             self.select_mode,
-            self.editor_service.file_service.active_file.name,
+            self.editor_service.document.file.name,
             self.editor_service.cursor_line,
             self.editor_service.visual_cursor_column(),
             self.editor_service.state.dirty
@@ -165,7 +165,7 @@ class TextEditorWidget(Widget):
     def action_save(self) -> None:
         """ Saves the current file """
 
-        self.notify(f"File: {self.editor_service.file_service.active_file.name} has been saved.")
+        self.notify(f"File: {self.editor_service.document.file.name} has been saved.")
         self.editor_service.save()
         self.refresh_editor()
 

@@ -1,5 +1,4 @@
-from Services.FileService import FileService, File
-from pathlib import Path
+from Services.FileService import FileService
 from Models.Document import Document
 
 class EditorService:
@@ -13,12 +12,8 @@ class EditorService:
 
     @property
     def contents(self) -> str:
-        """ Property referencing the contents of the active file """
-
-        if self.file_service.active_file is None:
-            raise ValueError("No active file")
-
-        return self.file_service.active_file.contents
+        """ Property referencing the contents of the current file """
+        return self.document.file.contents
 
     @property
     def cursor_line(self) -> int:
@@ -60,19 +55,6 @@ class EditorService:
         """ Return the contents of the clipboard """
 
         return self._clipboard
-
-    def open(self, path: Path) -> File:
-        """ A method allowing the editor to reset and open a file """
-
-        opened_file = self.file_service.open_file(path)
-        self.state.reset()
-        return opened_file
-
-    def close(self) -> None:
-        """ A method to reset the editor and close the active file"""
-
-        self.file_service.close_file()
-        self.state.reset()
 
     def move_cursor(self, position: int, is_selecting: bool) -> None:
         """ Moves the cursor to a given position while also handling selection"""
@@ -136,6 +118,9 @@ class EditorService:
         tab_size = 4   # How many spaces for tab
         lines = self.contents.splitlines(keepends=True)
 
+        if not lines:
+            return 0
+
         line = max(0, min(len(lines) - 1, line))
         content = lines[line].rstrip("\n")
 
@@ -183,7 +168,7 @@ class EditorService:
 
     """ Methods to move the cursor via arrow keys"""
     def move_cursor_up(self, is_selecting: bool) -> None:
-        # Moves the cursor up
+        """ Moves the cursor up """
         line = self.cursor_line
 
         column = self.visual_cursor_column()
@@ -198,7 +183,7 @@ class EditorService:
 
 
     def move_cursor_down(self, is_selecting: bool) -> None:
-        # Moves the cursor down
+        """ Moves the cursor down """
         line = self.cursor_line
         column = self.visual_cursor_column()
 
@@ -211,13 +196,13 @@ class EditorService:
         self.move_cursor(position, is_selecting)
 
     def move_cursor_left(self, is_selecting: bool) -> None:
-        # Moves the cursor left
+        """ Moves the cursor left """
 
         position = self.state.cursor_position - 1
         self.move_cursor(position, is_selecting)
 
     def move_cursor_right(self, is_selecting: bool) -> None:
-        # Moves the cursor right
+        """ Moves the cursor right """
 
         position = self.state.cursor_position + 1
         self.move_cursor(position, is_selecting)
@@ -242,7 +227,7 @@ class EditorService:
             contents = contents[:position] + to_insert + contents[position:]
             self.state.cursor_position = position + len(to_insert)
 
-        self.file_service.active_file.contents = contents
+        self.document.file.contents = contents
         self.state.dirty = True
 
     @staticmethod
@@ -299,7 +284,7 @@ class EditorService:
 
             contents = contents[:self.state.cursor_position] + contents[self.state.cursor_position + 1:]
 
-        self.file_service.active_file.contents = contents
+        self.document.file.contents = contents
         self.state.dirty = True
 
     def backspace(self):
@@ -315,22 +300,19 @@ class EditorService:
         contents = self.contents
 
         contents = contents[:self.state.cursor_position-1] + contents[self.state.cursor_position:]
-        self.file_service.active_file.contents = contents
+        self.document.file.contents = contents
         self.state.cursor_position -= 1
 
         self.state.dirty = True
 
     def save(self):
-        """ A method allowing the editor to save the contents of the active file """
+        """ A method allowing the editor to save the contents of the current file """
 
-        self.file_service.save_file()
+        self.file_service.save_file(self.document.file)
         self.state.dirty = False
 
     def select(self, selection_start: int, selection_end: int) -> None:
         """ A method to select a block of text supplied with a start and end position """
-
-        if self.file_service.active_file is None:
-            raise RuntimeError("No active file")
 
         self.state.selection_start = selection_start
         self.state.selection_end = selection_end
