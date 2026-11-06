@@ -1,6 +1,7 @@
 from textual import on
 from textual.widget import Widget
 from textual.containers import Horizontal, ScrollableContainer
+from Services.FileService import FileService
 from Services.EditorService import EditorService
 from Widgets.LineNumbersWidget import LineNumbersWidget
 from Widgets.TextEditorWidget import TextEditorWidget
@@ -11,9 +12,12 @@ from Widgets.HelpWidget import HelpWidget
 class EditorWidget(Widget):
     """ Widget to house the text editor portion of PyNest"""
 
-    def __init__(self, editor_service: EditorService):
+    def __init__(self, file_service: FileService):
         super().__init__()
-        self.editor_service = editor_service
+        self.file_service = file_service
+        self.documents = {}
+        self.active_editor = None
+        self.active_document = None
 
     def on_mount(self) -> None:
         self.text_editor = self.query_one(TextEditorWidget)
