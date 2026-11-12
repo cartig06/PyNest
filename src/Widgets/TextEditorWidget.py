@@ -76,7 +76,7 @@ class TextEditorWidget(Widget):
         """ Refreshes editor contents """
 
         contents = self.editor_service.contents.expandtabs(4)
-        line_count = self.app.query_one("#lines", LineNumbersWidget)
+        line_count = self.parent.query_one("#lines", LineNumbersWidget)
         status = self.app.query_one("#status", StatusBar)
 
         start = self.editor_service.state.selection_start

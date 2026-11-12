@@ -1,12 +1,14 @@
 from textual import on
 from textual.widget import Widget
-from textual.containers import Horizontal, ScrollableContainer
+from textual.containers import Horizontal, ScrollableContainer, Vertical
 from pathlib import Path
 from uuid import UUID
 from Models.Document import Document
 from Services.FileService import FileService
 from Services.EditorService import EditorService
 from Widgets.LineNumbersWidget import LineNumbersWidget
+from Widgets.TabsBarWidget import TabsBarWidget
+from Widgets.TabWidget import TabWidget
 from Widgets.TextEditorWidget import TextEditorWidget
 from Widgets.StatusBar import StatusBar
 from Widgets.HelpWidget import HelpWidget
@@ -19,20 +21,38 @@ class EditorWidget(Widget):
         super().__init__()
         self.file_service = file_service
         self.documents = {}
-        self.active_editor = None
         self.active_document = None
-        self.active_container = None
+
+    @property
+    def active_editor(self):
+        if self.active_document is None:
+            return None
+
+        return self.documents[self.active_document.id]["editor"]
+
+    @property
+    def active_container(self):
+        if self.active_document is None:
+            return None
+
+        return self.documents[self.active_document.id]["container"]
 
     # Events
     def on_mount(self) -> None:
         self.help_menu = self.query_one(HelpWidget)
         self.editor_scroll = self.query_one("#editor_scroll", ScrollableContainer)
+        self.tabs_bar = self.query_one(TabsBarWidget)
+
         if self.active_editor is not None:
             self.active_editor.focus()
 
     def on_click(self) -> None:
         if self.active_editor is not None:
             self.active_editor.focus()
+
+    @on(TabWidget.TabSelected)
+    def on_tabs_bar_tab_selected(self, message: TabWidget.TabSelected) -> None:
+        self.switch_document(message.document_id)
 
     @on(TextEditorWidget.HelpVisibilityChanged)
     def on_text_editor_help_visibility_changed(
@@ -66,8 +86,15 @@ class EditorWidget(Widget):
 
 
     # Editor Management
-    def open_document(self, path: Path) -> None:
+    async def open_document(self, path: Path) -> None:
         """ Opens a document and creates an editor instance for it """
+
+        path = path.resolve()
+
+        for document_id, data in self.documents.items():
+            if data["document"].file.path.resolve() == path:
+                self.switch_document(document_id)
+                return
 
         file = self.file_service.open_file(path)
         document = Document(file)
@@ -85,40 +112,38 @@ class EditorWidget(Widget):
 
         self.documents[document.id] = {
             "document": document,
-            "editor_service": editor_service,
             "editor": editor,
             "container": editor_container
         }
 
-        self.editor_scroll.mount(editor_container)
+        await self.editor_scroll.mount(editor_container)
+        await self.tabs_bar.update_tabs()
 
-        if self.active_document is None:
-            self.switch_document(document.id)
+        self.switch_document(document.id)
 
 
-    def close_document(self, id: UUID) -> None:
+    async def close_document(self, id: UUID) -> None:
         """ Closes a document and removes the editor instance """
 
         if id not in self.documents:
             return
 
         data = self.documents[id]
-        document = data["document"]
         container = data["container"]
 
-        document_was_active = self.active_document is not None and self.active_document.id == document.id
+        document_was_active = self.active_document is not None and self.active_document.id == id
 
         container.remove()
         del self.documents[id]
 
         if document_was_active:
             self.active_document = None
-            self.active_editor = None
-            self.active_container =None
 
             if self.documents:
                 next_doc = next(iter(self.documents))
                 self.switch_document(next_doc)
+
+        await self.tabs_bar.update_tabs()
 
     def switch_document(self, id: UUID) -> None:
         """ Switches the focused editor to active document """
@@ -132,14 +157,17 @@ class EditorWidget(Widget):
         data = self.documents[id]
 
         self.active_document = data["document"]
-        self.active_editor = data["editor"]
-        self.active_container = data["container"]
 
+        self.tabs_bar.set_active_tab(self.active_document.id)
         self.active_container.display = True
+        self.active_editor.refresh_editor()
         self.active_editor.focus()
 
     def compose(self):
-        yield ScrollableContainer(id="editor_scroll")
-
-        yield HelpWidget()
-        yield StatusBar(id="status")
+        yield Vertical(
+            TabsBarWidget(self.documents),
+            ScrollableContainer(id="editor_scroll"),
+            HelpWidget(),
+            StatusBar(id="status"),
+            id="editor_layout"
+        )
