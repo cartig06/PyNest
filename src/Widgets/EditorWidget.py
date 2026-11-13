@@ -52,6 +52,7 @@ class EditorWidget(Widget):
 
     @on(TabWidget.TabSelected)
     def on_tabs_bar_tab_selected(self, message: TabWidget.TabSelected) -> None:
+        """ Message handler for tab selection """
         self.switch_document(message.document_id)
 
     @on(TextEditorWidget.HelpVisibilityChanged)
@@ -66,6 +67,24 @@ class EditorWidget(Widget):
     def on_text_editor_cursor_moved(self, message: TextEditorWidget.CursorMoved) -> None:
         """ Message handler for auto scrolling functionality """
         self.auto_scroll()
+
+    @on(TextEditorWidget.TabNavigationRequested)
+    def on_text_editor_tab_navigation_requested(self, message: TextEditorWidget.TabNavigationRequested) -> None:
+        """ Message handler for tab navigation requested """
+
+        current_document_ids = list(self.documents.keys())
+        if len(current_document_ids) <= 1:
+            return
+
+        current_idx = current_document_ids.index(self.active_document.id)
+        new_idx = (current_idx + message.direction) % len(current_document_ids)
+        self.switch_document(current_document_ids[new_idx])
+
+    @on(TextEditorWidget.CloseTabRequested)
+    async def on_text_editor_close_tab_requested(self, message: TextEditorWidget.CloseTabRequested) -> None:
+        """ Message handler for close tab requested """
+
+        await self.close_document(self.active_document.id)
 
     def auto_scroll(self) -> None:
         """ Automatically scrolls the cursor when needed upon cursor movement"""

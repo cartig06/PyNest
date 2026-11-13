@@ -6,7 +6,8 @@ class HelpWidget(Static):
         super().__init__(
             "F1: Toggle Help  |  F2: Select Mode  |  "
             "F3: Copy  |  "
-            "F4: Paste  |  Ctrl+S: Save",
+            "F4: Paste  |  Ctrl+S: Save\n"
+            "Home: Previous tab | End: Next tab",
             id="help",
         )
 

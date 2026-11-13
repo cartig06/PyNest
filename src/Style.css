@@ -47,3 +47,28 @@ StatusBar {
     width: 100%;
     height: 1fr;
 }
+
+
+.tab {
+    width: auto;
+    height: 1;
+    min-width: 0;
+    padding: 0 2;
+    margin: 0 1 0 0;
+    border: none;
+    background: #19232d;
+    color: #91a0ad;
+    text-style: none;
+    content-align: center middle;
+}
+
+.tab:hover {
+    background: #263541;
+    color: white;
+}
+
+.tab.active_tab {
+    background: #293b49;
+    color: deepskyblue;
+    text-style: bold;
+}

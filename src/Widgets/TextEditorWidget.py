@@ -18,13 +18,27 @@ class TextEditorWidget(Widget):
     class HelpVisibilityChanged(Message):
         pass
 
+    # A message to move active tab
+    class TabNavigationRequested(Message):
+        def __init__(self, direction: int):
+            super().__init__()
+            self.direction = direction
+
+    # A message to close the current tab
+    class CloseTabRequested(Message):
+        pass
+
     # Bindings for textual
     BINDINGS = [
-        # Movement
+        # Navigation
         ("up", "cursor_up", "Moves cursor up"),
         ("down", "cursor_down", "Moves cursor down"),
         ("left", "cursor_left", "Moves cursor left"),
         ("right", "cursor_right", "Moves cursor right"),
+
+        ("home", "move_tab_left", "Switch to previous tab"),
+        ("end", "move_tab_right", "Switch to next tab"),
+        ("ctrl+c", "close_tab", "Close current tab"),
 
         #Help
         ("f1", "toggle_help", "Toggles help menu"),
@@ -141,6 +155,19 @@ class TextEditorWidget(Widget):
 
         self.editor_service.move_cursor_down(self.select_mode)
         self.refresh_editor()
+
+    def action_move_tab_left(self) -> None:
+        """ Moves tab left in editor """
+        self.post_message(self.TabNavigationRequested(-1))
+
+    def action_move_tab_right(self) -> None:
+        """ Moves tab right in editor """
+        self.post_message(self.TabNavigationRequested(1))
+
+    def action_close_tab(self) -> None:
+        """ Closes active tab """
+
+        self.post_message(self.CloseTabRequested())
 
     def action_toggle_select(self) -> None:
         """ Toggles select mode """
