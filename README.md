@@ -78,13 +78,23 @@ a small LLM for tab completion.
 
 ### Overview
 
-The overview should be at least a paragraph and describe what your project is about.
+PyNest is a terminal-based, keyboard-first Python IDE written in Python.
+It features a built-in text editor, file explorer, and project management system. 
+While I had planned to have a working interactive terminal emulator completed for this build,
+I was unable to do so in the allotted time. Still, I am happy with the program's current state as it is comfortable and
+intuitive to use without being too complex and even used it to write some of itself.
+With such a short timeframe, I am disappointed I was unable to get all the major components finished, but
+I am excited to continue development even after this class comes to an end.
 
 ### Tutorial
 
-The tutorial should at least be 2 paragraphs long and describe how to get started using the program. For example, if it
-is a game then you might want to introduce how to start playing and what the basic controls are. If it is a web
-application, you might want to indicate how to navigate the application and interact with different components.
+To get started with PyNest, a user should install all dependencies using the *requirements.txt* file. They should then
+create a virtual environment via *python3 -m venv .venv* in the project root directory. They should then enter the 
+virtual environment by running *source .venv/bin/activate* and, finally, run *src/main.py*  
+Once running, a user is greeted with a welcome screen asking them whether they'd like to create a new project, or open an existing one.
+You'd likely want to create a new project. They will then be brought to a new screen that asks for a projects folder and a name.
+If the default location works for you, leave it as that. Tab down to the create button (or click, most of PyNest works via mouse
+as well). Finally, you are brought to the project screen! View the help menu on the bottom for any further assistance!
 
 ### Installation Instructions
 
@@ -93,15 +103,8 @@ Step 2: View *instructions.txt* for further step instructions to get this protot
 
 ### Citation, Sources, and References
 
-Complete this section to include citations for assets and resources that you used for your project. For example, you could
-write this section like in the following example:
-
-
-[UI-Pack Sci-FI from kenney.nl](https://kenney.nl/assets/ui-pack-sci-fi)
-
-[Digital Audio Pack from kenny.nl](https://kenney.nl/assets/digital-audio)
-
-I created by own ASCII art using the [asciiflow web application](https://asciiflow.com/#/ ) and generative AI.
+I created ascii art for the logo in this project and most of the styling elemnents were done in CSS via my own knowledge
+and generative AI. I did not download any assets for this project, only used the libraries listed in *requirements.txt*
 
 
 > [!note]

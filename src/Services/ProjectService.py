@@ -19,6 +19,32 @@ class ProjectService:
 
         return config
 
+    @property
+    def project_root(self) -> Path:
+        """" Returns the current project's root directory """
+        if self.current_project is None:
+            raise RuntimeError("No project opened")
+
+        return self.current_project.root_dir
+
+    def get_directory_contents(self, directory: Path | None = None) -> list[Path]:
+        """ Returns a list containing the contents of a directory """
+
+        if self.current_project is None:
+            raise RuntimeError("No project opened")
+
+        if directory is None:
+            directory = self.current_project.root_dir
+
+        # Sort output: Directories first, alphabetical order
+        return sorted(directory.iterdir(),
+                      key=lambda path: (path.is_file(), path.name.lower()))
+
+    def is_project_open(self) -> bool:
+        """ Returns whether a project is currently open """
+        return self.current_project is not None
+
+
     def open_project(self, root_dir: Path) -> Project:
         """ Open a project from the root directory """
 

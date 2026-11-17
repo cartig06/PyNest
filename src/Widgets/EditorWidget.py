@@ -124,7 +124,8 @@ class EditorWidget(Widget):
 
         editor_container = Horizontal(
             line_numbers,
-            editor
+            editor,
+            id=f"editor_container_{document.id}",
         )
 
         editor_container.display = False
@@ -161,8 +162,22 @@ class EditorWidget(Widget):
             if self.documents:
                 next_doc = next(iter(self.documents))
                 self.switch_document(next_doc)
+            else:
+                self.query_one("#status", StatusBar).update_info(
+                    False, "No document", 0, 0, False
+                )
 
         await self.tabs_bar.update_tabs()
+
+    async def close_documents_in_directory(self, deleted_path: Path):
+        """ Closes documents contained in a deleted directory """
+        deleted_path = deleted_path.resolve()
+
+        for document_id, data in list(self.documents.items()):
+            file_path = data["document"].file.path.resolve()
+
+            if file_path == deleted_path or deleted_path in file_path.parents:
+                await self.close_document(document_id)
 
     def switch_document(self, id: UUID) -> None:
         """ Switches the focused editor to active document """

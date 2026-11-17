@@ -9,6 +9,7 @@ class LineNumbersWidget(Static):
         self.editor_service = editor_service
 
     def refresh_line_count(self):
+        """ Refreshes the number of lines (duh...) """
         line_count = self.editor_service.contents.count("\n") + 1
 
         self.update("\n".join(str(number) for number in range(1, line_count + 1)))

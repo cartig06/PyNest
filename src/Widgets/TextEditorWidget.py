@@ -38,7 +38,7 @@ class TextEditorWidget(Widget):
 
         ("home", "move_tab_left", "Switch to previous tab"),
         ("end", "move_tab_right", "Switch to next tab"),
-        ("ctrl+c", "close_tab", "Close current tab"),
+        ("ctrl+w", "close_tab", "Close current tab"),
 
         #Help
         ("f1", "toggle_help", "Toggles help menu"),
@@ -91,7 +91,7 @@ class TextEditorWidget(Widget):
 
         contents = self.editor_service.contents.expandtabs(4)
         line_count = self.parent.query_one("#lines", LineNumbersWidget)
-        status = self.app.query_one("#status", StatusBar)
+        status = self.parent.parent.parent.query_one("#status", StatusBar)
 
         start = self.editor_service.state.selection_start
         end = self.editor_service.state.selection_end

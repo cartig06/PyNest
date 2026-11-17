@@ -1,4 +1,5 @@
 .git/
+src/Test/
 .idea/
 **/__pycache/
 *.py[cod]
